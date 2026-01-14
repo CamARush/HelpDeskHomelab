@@ -130,7 +130,7 @@ Now I need to create an Autopilot profile corresponding with the type of PC I'm 
 
 ### 6. Pre-Installed Programs
 
-Now I want to add specific programs that will be installed by default. For this example I want all M365 apps to be installed and 
+Now I'm going to specify which programs I want to be installed on the endpoint device by default. 
 
 <img width="947" height="269" alt="image" src="https://github.com/user-attachments/assets/2ce3f173-973b-4b1e-b1ad-1bc86c084105" />
 
@@ -138,7 +138,7 @@ I'm chooing the Autopilot group so every joined device will have these apps.
 
 <img width="1174" height="683" alt="image" src="https://github.com/user-attachments/assets/049f2408-8b28-491f-babc-dd3de56d8820" />
 
-I'm going to have autopilot install Brave Browser, Company Portal, and Microsoft 365 Apps.
+I'm going to have autopilot install the Brave Browser, Company Portal, and Microsoft 365 Apps.
 
 <img width="1372" height="635" alt="image" src="https://github.com/user-attachments/assets/d6e630de-c0b1-4445-b805-1e5dccc601c0" />
 
