@@ -48,10 +48,10 @@ To ensure that no other users have access to it, I have to set the permissions i
 <img width="286" height="362" alt="image" src="https://github.com/user-attachments/assets/5e15c969-da63-43e4-9123-b74f546f2bf1" />
 <img width="290" height="360" alt="image" src="https://github.com/user-attachments/assets/6e2ee646-d004-4e35-870e-563605dc3b84" />
 
-### Conclusion: 
-While I believe most corporate environments have moved away from on-premesis AD domain controllers in favor of the cloud, some may be still in a hybrid identity environment or transferring to the cloud. 
-
+### Conclusion/Future Plans:
 I just scratched the surface of what you can do with Active Directory. You can use security groups to apply the principle of least privilege to not just folders. You can use security groups for files, drives, folders, VPN access, Remote Desktop, Firewall rules, and Printers/Scanners. 
+
+I plan to implement some of these ACs and also utilize Entra Connect to bridge the gap between On-Premesis AD and the Cloud for a hybrid-identity environment. While I believe most corporate environments have moved away from on-premesis AD domain controllers in favor of the cloud, some may be still in a hybrid identity environment or transferring to the cloud so this skill will be useful. 
 
 ---
 
@@ -71,7 +71,14 @@ First, I'm going to prep the PC for Autopilot. To do this, I need to get the Har
 
 I followed the documentation here: https://learn.microsoft.com/en-us/autopilot/add-devices
 
-I decided to use a script to upload the hash directly to Intune, as this avoids the initial Windows setup process. 
+I decided to use the script below to upload the hash directly to Intune, as this avoids the initial Windows setup process. 
+
+```
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+ Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+ Install-Script -Name Get-WindowsAutopilotInfo -Force
+ Get-WindowsAutopilotInfo -Online
+```
 
 <img width="782" height="501" alt="image" src="https://github.com/user-attachments/assets/24072f1e-8230-40a3-91c4-25fe5b06a646" />
 
@@ -172,9 +179,32 @@ I can also see the device in the Intune admin center.
 
 <img width="1387" height="644" alt="image" src="https://github.com/user-attachments/assets/e899e60e-3049-4247-b4da-4af79be7bc84" />
 
+## Technical Hurdles & Troubleshooting:
+The most significant challenges I encountered during this project were Intune enrollment and a Sysprep execution failure. 
+
+**__Intune Enrollment__**
+<ul>
+
+**Issue:** After successfully uploading the hardware hash via the ``` Get-WindowsAutopilotInfo -Online ``` script, the device began the OOBE process with the custom Autopilot branding I configured. However, the applications I designated for automatic installation in the Intune admin center weren't being installed.
+
+**Investigation:** The device was successfully registered under Devices > Windows > Windows enrollment, however, I noticed that the Profile Status was set to "Not Assigned". I had created a Dynamic Device Group which I had configured to automatically enroll devices into autopilot. After confirming the group query was correct, I went to the internet to research this behavior and found that this could be a processing delay with Entra ID dynamic groups.
+
+**Resolution:** I decided to add the device manually to the proper group to bypass the delay. The status in the Intune enrollment page changed to Assigned and after resetting the OOBE and signing in, the device was successfully enrolled in Intune and the apps I configured were automatically installed. 
+</ul>
+
+**__Sysprep Execution__**
+<ul>
+
+**Issue:** When attempting to run ``` sysprep.exe /generalize /oobe ``` it would return a generic error, preventing me from restarting the OOBE to test my Autopilot configuration.
+
+**Investigation:** Rather than resetting the Windows image, I investigated the setupact.log located in ``` C:\Windows\System32\Sysprep\Panther ```. The error log identified that sysprep couldn't run on a drive with BitLocker encryption enabled. 
+
+**Resolution:** I decided to decrypt the drive using ``` manage-bde -off C: ``` and monitoring the decryption status with ``` manage-bde -status ``` until it was fully decrypted. I was then able to run sysprep to restart the OOBE.
+
+</ul>
 
 ## Future Plans:
-I plan to make the most of my Microsoft 365 free trial and test different Microsoft 365 services like Purview and Defender. I also want to set up an endpoint device that connects to the local domain controller. Autopilot was my main priority, so that will be my next step. 
+I plan to make the most of my Microsoft 365 free trial and test different Microsoft 365 services like Purview and Defender and also try MDM. I also want to set up an endpoint device that connects to the local domain controller. Autopilot was my main priority, so that will be my next step. 
 
 ## Conclusion:
-I learned a lot about Autopilot and how to customize the OOBE. Specifically by enrolling a device in Entra ID and Intune to have a zero-touch autopilot setup. I also honed my skills in policy and group configuration.
+I have gained hands-on experience with endpoint management through Intune and cloud administration with EntraID. Additionally, by configuring RBAC, I was able to practice implementing the principle of least privilege. This homelab has prepared me to effectively manage and troubleshoot Microsoft 365 environments and Autopilot deployments in an enterprise settings. It also serves as a platform for me to continue to develop my Microsoft 365 skills by testing different Microsoft 365 services like Purview and Defender XDR. 
